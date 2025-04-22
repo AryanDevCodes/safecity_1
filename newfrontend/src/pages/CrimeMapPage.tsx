@@ -1,59 +1,130 @@
-import React from 'react';
-import Navbar from '../components/layout/Navbar';
-import CrimeMap from '../components/map/CrimeMap';
-import { MapPin, AlertCircle } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { Card, CardContent, CardHeader } from '../components/ui/card';
-import { Alert, AlertDescription } from '../components/ui/alert';
+import React, { useState } from 'react';
+import CrimeMap from '@/components/map/CrimeMap';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarIcon, Filter } from 'lucide-react';
+import { format } from 'date-fns';
 
 const CrimeMapPage = () => {
-  const { permissions, isAuthenticated } = useAuth();
+  const [showFilters, setShowFilters] = useState(false);
+  const [incidentType, setIncidentType] = useState<string>('all');
+  const [timeRange, setTimeRange] = useState<string>('24h');
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6 flex items-center">
-          <MapPin className="h-8 w-8 text-orange-700 mr-2" />
-          <h1 className="text-2xl font-bold">Crime Mapping System</h1>
-        </div>
-        
-        <div className="mb-6">
-          <p className="text-gray-600">
-            Explore reported incidents across the city with our interactive crime mapping tool. 
-            This visual representation helps identify patterns and hotspots.
-            {permissions.canAccessAnalytics && (
-              <span> Advanced analytics and predictive features are available for authorized personnel.</span>
-            )}
-          </p>
+      <div className="relative">
+        {/* Map Component */}
+        <div className="h-[calc(100vh-4rem)]">
+          <CrimeMap />
         </div>
 
-        {!isAuthenticated && (
-          <Alert variant="warning" className="mb-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Sign in to access detailed crime statistics and personalized safety recommendations.
-            </AlertDescription>
-          </Alert>
-        )}
-        
-        <Card className="shadow-sm">
-          <CardHeader className="bg-white pb-0">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-medium">Crime Hotspots</h2>
-              {permissions.canAccessAnalytics && (
-                <div className="text-sm text-amber-600">
-                  *Analytics Mode Enabled
+        {/* Floating Controls */}
+        <div className="absolute top-4 right-4 z-10 space-y-4">
+          <Card className="p-4 shadow-lg w-80">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Map Controls</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                Filters
+              </Button>
+            </div>
+
+            {showFilters && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Incident Type</label>
+                  <Select value={incidentType} onValueChange={setIncidentType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Incidents</SelectItem>
+                      <SelectItem value="theft">Theft</SelectItem>
+                      <SelectItem value="assault">Assault</SelectItem>
+                      <SelectItem value="vandalism">Vandalism</SelectItem>
+                      <SelectItem value="emergency">Emergency</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              )}
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Time Range</label>
+                  <Select value={timeRange} onValueChange={setTimeRange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="24h">Last 24 Hours</SelectItem>
+                      <SelectItem value="7d">Last 7 Days</SelectItem>
+                      <SelectItem value="30d">Last 30 Days</SelectItem>
+                      <SelectItem value="custom">Custom Range</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {timeRange === 'custom' && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Custom Date</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date ? format(date, 'PPP') : <span>Pick a date</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={setDate}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                )}
+
+                <Button className="w-full" variant="default">
+                  Apply Filters
+                </Button>
+              </div>
+            )}
+          </Card>
+
+          <Card className="p-4 shadow-lg">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Active Officers</span>
+                <span className="text-sm font-bold text-blue-600">12</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Active Incidents</span>
+                <span className="text-sm font-bold text-amber-600">8</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Emergencies</span>
+                <span className="text-sm font-bold text-red-600">2</span>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent className="pt-6 bg-white">
-            <div className="h-[60vh]">
-              <CrimeMap />
-            </div>
-          </CardContent>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
   );

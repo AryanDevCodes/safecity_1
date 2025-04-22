@@ -58,13 +58,14 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/reports/**").permitAll() // Allow public access to all report endpoints
-                        .requestMatchers("/api/crime-map/**").permitAll() // Allow public crime map
-                        .requestMatchers("/api/alerts/public/**").permitAll() // Example: public alerts
-                        .requestMatchers("/api/incidents/**").permitAll() // Allow public access to incidents
+                        .requestMatchers("/api/reports/**").permitAll()
+                        .requestMatchers("/api/crime-map/**").permitAll()
+                        .requestMatchers("/api/alerts/public/**").permitAll()
+                        .requestMatchers("/api/incidents/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll() // WebSocket endpoints
+                        .requestMatchers("/topic/**").permitAll() // WebSocket topics
                         .requestMatchers("/api/users/**").hasAuthority("ROLE_ADMIN")
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -73,11 +74,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173")); // Vite dev server
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
+        configuration.setAllowCredentials(true);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/ws/**", configuration);
         return source;
     }
 }

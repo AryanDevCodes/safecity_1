@@ -10,7 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
-
+import com.mongodb.MongoException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +24,6 @@ public class GlobalExceptionHandler {
                 new Date(),
                 ex.getMessage(),
                 request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -34,7 +33,6 @@ public class GlobalExceptionHandler {
                 new Date(),
                 ex.getMessage(),
                 request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
@@ -44,7 +42,6 @@ public class GlobalExceptionHandler {
                 new Date(),
                 "Access Denied",
                 request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.FORBIDDEN);
     }
 
@@ -54,7 +51,6 @@ public class GlobalExceptionHandler {
                 new Date(),
                 "Invalid username or password",
                 request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
@@ -66,21 +62,28 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MongoException.class)
+    public ResponseEntity<?> handleMongoException(MongoException ex, WebRequest request) {
+        ErrorDetails errorDetails = new ErrorDetails(
+                new Date(),
+                "Database operation failed: " + ex.getMessage(),
+                request.getDescription(false));
+        return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Getter
     public static class ErrorDetails {
-        private final Date timestamp;
-        private final String message;
-        private final String details;
+        private Date timestamp;
+        private String message;
+        private String details;
 
         public ErrorDetails(Date timestamp, String message, String details) {
             this.timestamp = timestamp;
             this.message = message;
             this.details = details;
         }
-
     }
 }

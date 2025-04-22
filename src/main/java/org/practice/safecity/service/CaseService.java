@@ -16,11 +16,14 @@ import java.util.UUID;
 @Service
 public class CaseService {
 
-    @Autowired
-    private CaseRepository caseRepository;
+    private final CaseRepository caseRepository;
 
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
+
+    public CaseService(CaseRepository caseRepository, AuthService authService) {
+        this.caseRepository = caseRepository;
+        this.authService = authService;
+    }
 
     public Page<Case> getAllCases(Pageable pageable) {
         return caseRepository.findAll(pageable);

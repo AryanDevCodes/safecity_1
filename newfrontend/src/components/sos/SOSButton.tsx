@@ -12,6 +12,7 @@ import {
 } from "../ui/dialog";
 import { useAuth } from '../../contexts/AuthContext';
 import { sosService } from '../../services/api';
+import { soundManager } from '@/lib/soundUtils';
 
 interface Location {
   lat: number;
@@ -24,6 +25,7 @@ const SOSButton = () => {
   const { isAuthenticated, user } = useAuth();
 
   const handleSOSClick = () => {
+    soundManager.play('notification'); // Play notification sound when opening dialog
     setShowConfirmation(true);
   };
 
@@ -60,6 +62,8 @@ const SOSButton = () => {
       const location = await getCurrentLocation();
 
       await sosService.triggerSOS(location, 'Emergency alert triggered by ' + (isAuthenticated ? user?.name : 'anonymous user'));
+
+      soundManager.play('emergency'); // Play emergency sound when alert is sent
 
       toast({
         title: "Emergency Alert Sent",
