@@ -1,0 +1,4 @@
+package org.practice.safecity_1.controller;
+
+public class UserDetailsServiceImpl {
+}
